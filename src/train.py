@@ -2,6 +2,8 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from tqdm import tqdm
+from sklearn.metrics import classification_report, confusion_matrix
+import numpy as np
 
 from model import get_model
 from data_loader import get_dataloaders
@@ -50,22 +52,29 @@ for epoch in range(num_epochs):
     print(f"Training Loss: {running_loss/len(train_loader):.4f}")
     print(f"Training Accuracy: {train_accuracy:.2f}%")
 
-    # ----- Evaluation -----
-    model.eval()
-    correct = 0
-    total = 0
+# -------------------- EVALUATION --------------------
 
-    with torch.no_grad():
-        for images, labels in test_loader:
-            images, labels = images.to(device), labels.to(device)
+model.eval()
+all_preds = []
+all_labels = []
 
-            outputs = model(images)
-            _, predicted = torch.max(outputs.data, 1)
+with torch.no_grad():
+    for images, labels in test_loader:
+        images = images.to(device)
+        outputs = model(images)
 
-            total += labels.size(0)
-            correct += (predicted == labels).sum().item()
+        _, predicted = torch.max(outputs.data, 1)
 
-    test_accuracy = 100 * correct / total
-    print(f"Test Accuracy: {test_accuracy:.2f}%")
+        all_preds.extend(predicted.cpu().numpy())
+        all_labels.extend(labels.numpy())
 
-print("\nTraining Finished")
+print("\nConfusion Matrix:")
+print(confusion_matrix(all_labels, all_preds))
+
+print("\nClassification Report:")
+print(classification_report(all_labels, all_preds, target_names=["Real", "Manipulated"]))
+
+# -------------------- SAVE MODEL --------------------
+
+torch.save(model.state_dict(), "forensic_model.pth")
+print("\nModel saved as forensic_model.pth")
