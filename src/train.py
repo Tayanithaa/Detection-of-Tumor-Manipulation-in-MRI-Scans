@@ -17,7 +17,7 @@ print("Using Device:", device)
 train_loader, test_loader = get_dataloaders(
     "../Dataset/Processed/train",
     "../Dataset/Processed/test",
-    batch_size=32
+    batch_size=8
 )
 
 # ---------------- MODEL ----------------
@@ -39,7 +39,7 @@ optimizer = optim.Adam([
 ], weight_decay=1e-4)
 
 # Cosine annealing scheduler
-num_epochs = 30
+num_epochs = 20
 scheduler = CosineAnnealingLR(optimizer, T_max=num_epochs, eta_min=1e-7)
 
 # ---------------- TRAINING WITH VALIDATION TRACKING ----------------
